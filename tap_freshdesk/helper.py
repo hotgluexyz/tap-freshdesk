@@ -74,6 +74,7 @@ def parse_args(required_config_keys):
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', help='Config file', required=True)
     parser.add_argument('-s', '--state', help='State file')
+    parser.add_argument('--catalog', '--catalog', help='Catalog file')
     args = parser.parse_args()
 
     config = load_json(args.config)
@@ -83,11 +84,33 @@ def parse_args(required_config_keys):
         state = load_json(args.state)
     else:
         state = {}
+    if args.catalog:
+        catalog = load_json(args.catalog)
+    else:
+        catalog = {}
 
-    return config, state
+    return config, state  # , catalog
 
 
 def check_config(config, required_keys):
     missing_keys = [key for key in required_keys if key not in config]
     if missing_keys:
         raise Exception("Config is missing required keys: {}".format(missing_keys))
+
+
+custom_field_types = {
+    "custom_number": {'type': ['null', 'number']},
+    "custom_paragraph": {'type': ['null', 'string']},
+    "custom_checkbox": {'type': ['null', 'boolean']},
+    "custom_dropdown": {'type': ['null', 'string']},
+    "custom_text": {'type': ['null', 'string']},
+    "nested_field": {'type': ['null', 'string']},
+    "custom_decimal": {'type': ['null', 'number']},
+    "custom_date": {'type': ['null', 'string']},  # string with format date
+    "custom_url": {'type': ['null', 'string']},
+    "custom_phone_number": {'type': ['null', 'string']}
+}
+
+
+def map_type(field_type):
+    return custom_field_types[field_type]

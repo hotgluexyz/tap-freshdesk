@@ -1,8 +1,6 @@
 # If using the class-based model, this is where all the stream classes and their corresponding functions live.
-import datetime
-
-from singer import utils
 import singer
+import helper
 
 LOGGER = singer.get_logger()
 
@@ -18,164 +16,233 @@ class Agents(Stream):
     stream_id = 'agents'
     stream_name = 'agents'
     endpoint = 'agents'
+    custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = []
+    replication_keys = ['updated_at']
 
-    agent_ids = []
-
-    def get_all_agent_ids(self):
-        if Agents.agent_ids:
-            for agent in Agents.agent_ids:
-                yield agent
-        else:
-            records = self.client.get(self.endpoint)
-            for rec in records.get('results'):
-                Agents.agent_ids.append(rec['id'])
-                yield rec['id']
-
-    def sync(self):
-        records = self.client.get(self.endpoint)
-        for rec in records.get('results'):
+    def sync(self, start_date):
+        records = self.client.get(self.endpoint, params={})
+        for rec in records:
+            if rec['updated_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
-
-
-class BusinessHours(Stream):
-    stream_id = 'business_hours'
-    stream_name = 'business_hours'
-    endpoint = 'business_hours'
-    key_properties = ["id"]
-    replication_method = "FULL_TABLE"
-    replication_keys = []
-
-    def sync(self):
-        records = self.client.get(self.endpoint)
-        for rec in records.get('results'):
-            yield rec
+        singer.write_state(self.state)
 
 
 class Companies(Stream):
     stream_id = 'companies'
     stream_name = 'companies'
     endpoint = 'companies'
+    custom_fields = 'company_fields'
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = []
+    replication_keys = ['updated_at']
 
-    def sync(self):
+    def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
-        for rec in records.get('results'):
+        for rec in records:
+            if rec['updated_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
+        singer.write_state(self.state)
 
 
 class Contacts(Stream):
     stream_id = 'contacts'
     stream_name = 'contacts'
     endpoint = 'contacts'
+    custom_fields = 'contact_fields'
     key_properties = ["id", "updated_at"]
     replication_method = "INCREMENTAL"
     replication_keys = ["updated_at"]
 
-    def sync(self):
+    def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
-        for rec in records.get('results'):
+        for rec in records:
+            if rec['updated_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
-
-
-class Conversations(Stream):
-    stream_id = 'conversations'
-    stream_name = 'conversations'
-    endpoint = 'conversations'
-    key_properties = ["id"]
-    replication_method = "FULL_TABLE"
-    replication_keys = []
-
-    def sync(self):
-        records = self.client.get(self.endpoint, params={})
-        for rec in records.get('results'):
-            yield rec
+        singer.write_state(self.state)
 
 
 class Groups(Stream):
     stream_id = 'groups'
     stream_name = 'groups'
     endpoint = 'groups'
+    custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = []
+    replication_keys = ['updated_at']
 
-    def sync(self):
+    def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
-        for rec in records.get('results'):
+        for rec in records:
+            if rec['updated_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
+        singer.write_state(self.state)
 
 
 class Roles(Stream):
     stream_id = 'roles'
     stream_name = 'roles'
     endpoint = 'roles'
+    custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = []
+    replication_keys = ['updated_at']
 
-
-    def sync(self):
+    def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
-        for rec in records.get('results'):
+        for rec in records:
+            if rec['updated_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
+        singer.write_state(self.state)
 
 
 class Tickets(Stream):
     stream_id = 'tickets'
     stream_name = 'tickets'
     endpoint = 'tickets'
+    custom_fields = 'ticket_fields'
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = []
+    replication_keys = ['updated_at']
 
-    def sync(self):
-        records = self.client.get(self.endpoint, params={})
-        for rec in records.get('results'):
+    ticket_ids = []
+
+    def get_all_ticket_ids(self):
+        if Tickets.ticket_ids:
+            for ticket in Tickets.ticket_ids:
+                yield ticket
+        else:
+            records = self.client.get(self.endpoint)
+            for rec in records:
+                Tickets.ticket_ids.append(rec['id'])
+                yield rec['id']
+
+    def sync(self, start_date):
+        params = {
+            'updated_since': start_date,
+            'order_by': 'updated_at',
+            'order_type': "asc",
+            'include': "requester,company,stats"
+        }
+
+        records = self.client.get(self.endpoint, params=params)
+        for predefined_filter in ["deleted", "spam"]:
+            LOGGER.info("Syncing tickets with filter {}".format(predefined_filter))
+            params['filter'] = predefined_filter
+            # Get filtered record, as deleted records won't show on unfiltered call
+            records.extend(self.client.get(self.endpoint, params=params))
+
+        for rec in records:
+            rec.pop('attachments', None)
+            if rec['updated_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
+            helper.update_state(self.state, self.stream_id, rec['updated_at'])
+        singer.write_state(self.state)
+
+
+class Conversations(Stream):
+    stream_id = 'conversations'
+    stream_name = 'conversations'
+    endpoint = 'tickets/{id}/conversations'
+    custom_fields = False
+    key_properties = ["id"]
+    replication_method = "FULL_TABLE"
+    replication_keys = ['updated_at']
+    ticket_ids = []
+
+    def sync(self, start_date):
+        tickets = Tickets(self.client, self.config, self.state)
+        for ticket_id in tickets.get_all_ticket_ids():
+            records = self.client.get(self.endpoint.format(id=ticket_id), params={})
+            for rec in records:
+                rec.pop("attachments", None)
+                rec.pop("body", None)
+                if rec['updated_at'] >= start_date:
+                    helper.update_state(self.state, self.stream_id, rec['updated_at'])
+                yield rec
+            singer.write_state(self.state)
+
+
+RATINGS = {
+    "103": "Extremely Happy",
+    "102": "Very Happy",
+    "101": "Happy",
+    "100": "Neutral",
+    "-101": "Unhappy",
+    "-102": "Very Unhappy",
+    "-103": "Extremely Unhappy",
+    "1": "Happy",
+    "2": "Neutral",
+    "3": "Unhappy"
+}
 
 
 class SatisfactionRatings(Stream):
     stream_id = 'satisfaction_ratings'
     stream_name = 'satisfaction_ratings'
-    endpoint = 'satisfaction_ratings'
+    endpoint = 'surveys/satisfaction_ratings'
+    custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = []
+    replication_keys = ['updated_at']
 
-    def sync(self):
+    def sync(self, start_date):
+        # TODO: optimize 3 nested for loops!
+        questions = [q.get("questions", False) and q.get("questions", False)[0] for q in
+                     self.client.get("surveys", params={})]
         records = self.client.get(self.endpoint, params={})
-        for rec in records.get('results'):
+        for rec in records:
+            if rec['updated_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['updated_at'])
+
+            if rec.get('ratings', False):
+                response = []
+                for k, v in rec['ratings'].items():
+                    label = [qw["label"] for qw in questions if qw["id"] == k]
+                    response.append({"question_id": k,
+                                     "question_label": label and label[0] or "",
+                                     "rating_id": v,
+                                     "rating_label": RATINGS.get(v, False)})
+
+                rec.pop('ratings')  # remove dict
+                rec['ratings'] = response  # insert array of objects
             yield rec
+        singer.write_state(self.state)
 
 
 class TimeEntries(Stream):
     stream_id = 'time_entries'
     stream_name = 'time_entries'
     endpoint = 'time_entries'
+    custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = []
+    replication_keys = ['updated_at']
 
-    def sync(self):
+    def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
-        for rec in records.get('results'):
+        for rec in records:
+            if rec['updated_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
+        singer.write_state(self.state)
 
 
 STREAM_OBJECTS = {
     'agents': Agents,
-    'business_hours': BusinessHours,
     'companies': Companies,
     'contacts': Contacts,
-    'conversations': Conversations,
     'groups': Groups,
     'roles': Roles,
-    'satisfaction_ratings': SatisfactionRatings,
     'tickets': Tickets,
+    'conversations': Conversations,
+    'satisfaction_ratings': SatisfactionRatings,
     'time_entries': TimeEntries,
 }

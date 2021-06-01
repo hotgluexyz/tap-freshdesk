@@ -3,73 +3,98 @@
   "properties": {
     "survey_id": {
       "type": [
-        "null", 
+        "null",
         "integer"
       ]
-    }, 
+    },
     "user_id": {
       "type": [
-        "null", 
+        "null",
         "integer"
       ]
-    }, 
+    },
     "feedback": {
       "type": [
-        "null", 
+        "null",
         "string"
       ]
-    }, 
+    },
     "created_at": {
       "type": [
-        "null", 
+        "null",
         "string"
-      ], 
+      ],
       "format": "date-time"
-    }, 
+    },
     "updated_at": {
       "type": [
-        "null", 
+        "null",
         "string"
-      ], 
+      ],
       "format": "date-time"
-    }, 
+    },
     "agent_id": {
       "type": [
-        "null", 
+        "null",
         "integer"
       ]
-    }, 
+    },
     "group_id": {
       "type": [
-        "null", 
+        "null",
         "integer"
       ]
-    }, 
+    },
     "id": {
       "type": [
-        "null", 
+        "null",
         "integer"
       ]
-    }, 
+    },
     "ticket_id": {
       "type": [
-        "null", 
+        "null",
         "integer"
       ]
     },
     "ratings": {
-      "type": ["null", "array"],
+      "type": [
+        "null",
+        "array"
+      ],
       "items": {
-        "type": ["null", "object"],
+        "type": [
+          "null",
+          "object"
+        ],
         "properties": {
-          "question": {
-            "type": ["null", "string"]
+          "question_id": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
-          "value": {
-            "type": ["null", "integer"]
+          "question_label": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rating_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "rating_label": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       }
     }
   }
 }
+

@@ -5,6 +5,7 @@ import json
 from singer import metadata
 from singer.catalog import Catalog
 from .streams import STREAM_OBJECTS
+from .helper import map_type
 
 
 def _get_abs_path(path):
@@ -22,13 +23,31 @@ def _load_schemas():
     return schemas
 
 
-def do_discover():
+def discover(client):
+    # discover catalog schema
     raw_schemas = _load_schemas()
     catalog_entries = []
 
     for stream_name, schema in raw_schemas.items():
         # create and add catalog entry
         stream = STREAM_OBJECTS[stream_name]
+
+        # Add custom fields
+        if stream.custom_fields:
+            response = client._make_request('GET', stream.custom_fields)
+
+            for field in response:
+                field_name = field.get('name', False)
+                if field.get('default', False):
+                    continue
+                # add mapping ex. custom_number -> number
+                field_type = field.get('type', False)
+                schema["properties"][field_name] = map_type(field_type)
+                if field_type == 'nested_field':
+                    for nested_field in field.get('nested_ticket_fields', []):
+                        schema["properties"][nested_field['name']] = map_type(field_type)
+            # remove custom_fields parent as they are added directly in schema
+            schema["properties"].pop('custom_fields')
 
         catalog_entry = {
             "stream": stream_name,

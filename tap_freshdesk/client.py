@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 # Calls to the api are made here.
-
-import sys
-import json
 import time
 import singer
 import backoff
@@ -19,17 +16,19 @@ class FreshdeskError(Exception):
     pass
 
 
-class FreshdeskClient():
+class FreshdeskClient:
     def __init__(self, config_path, config):
         self.config_path = config_path
         self.config = config
         self.session = requests.Session()
         try:
             # Make an authenticated request after creating the object to any endpoint
-            tickets = self.get('tickets', {}, config)  # .get('results').get('id')
+            # TODO: add params
+            params = {}
+            tickets = self.get('tickets', {}, params)
             self.tickets = tickets
         except Exception as e:
-            logger.info("Error initializing FreshdeskClient during token refresh, please reauthenticate.")
+            logger.info("Error initializing FreshdeskClient, please authenticate.")
             raise FreshdeskError(e)
 
     @backoff.on_exception(backoff.expo,
@@ -41,10 +40,12 @@ class FreshdeskClient():
     def _make_request(self, method, endpoint, headers=None, params=None, data=None):
         params = params or {}
         headers = {}
-        domain = False
-
-        if "domain" in params:
-            domain = params.get("domain", False)
+        domain = self.config.get("domain", False)
+        api_key = self.config.get("api_key", False)
+        if not domain:
+            raise FreshdeskError("EXCEPTION RAISED: Subdomain not found!")
+        if not api_key:
+            raise FreshdeskError("EXCEPTION RAISED: API KEY not found!")
 
         full_url = ENDPOINT_BASE.format(domain) + endpoint
         logger.info(
@@ -59,8 +60,7 @@ class FreshdeskClient():
             headers['User-Agent'] = params['user_agent']
 
         try:
-            # TODO: params should be other than configuration data
-            req = requests.Request('GET', full_url, params={}, auth=(params['api_key'], ""),
+            req = requests.Request('GET', full_url, params={}, auth=(api_key, ""),
                                    headers=headers).prepare()
             logger.info("GET {}".format(req.url))
             resp = self.session.send(req)
@@ -74,7 +74,6 @@ class FreshdeskClient():
             return resp.json()
 
         except Exception as e:
-            print("Exception raised!", e)
             raise Exception("EXCEPTION RAISED: ", e)
 
     def get(self, url, headers=None, params=None):

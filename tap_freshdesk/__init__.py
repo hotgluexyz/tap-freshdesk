@@ -1,9 +1,9 @@
 import singer
 from singer import utils
 from singer.catalog import Catalog, write_catalog
-from tap_freshdesk.discover import do_discover
+from tap_freshdesk.discover import discover
 from tap_freshdesk.client import FreshdeskClient
-from tap_freshdesk.sync import do_sync, CONFIG, STATE
+from tap_freshdesk.sync import sync, CONFIG, STATE
 from tap_freshdesk.helper import parse_args
 
 LOGGER = singer.get_logger()
@@ -13,7 +13,7 @@ REQUIRED_CONFIG_KEYS = ['api_key', 'domain', 'start_date']
 
 @utils.handle_top_exception(LOGGER)
 def main():
-    required_config_keys = ['start_date']
+    required_config_keys = ['start_date'] # TODO: check- required only start date?
     args = singer.parse_args(required_config_keys)
 
     config = args.config
@@ -26,7 +26,7 @@ def main():
 
     if args.discover:
         LOGGER.info("Starting discovery mode")
-        catalog = do_discover()
+        catalog = discover(freshdesk_client)
         write_catalog(catalog)
     else:
         LOGGER.info("Starting sync mode")
@@ -35,9 +35,8 @@ def main():
         CONFIG.update(config)
         STATE.update(state)
 
-        # TODO: use do_sync with client
-        # do_sync(freshdesk_client, config, state, catalog)
-        do_sync()
+        sync(freshdesk_client, config, state, catalog)
+        # do_sync()
 
 
 if __name__ == "__main__":
