@@ -59,7 +59,8 @@ def discover(client):
                 valid_replication_keys=stream.replication_keys,
                 replication_method=stream.replication_method,
             ),
-            "key_properties": stream.key_properties
+            "key_properties": stream.key_properties,
+            "replication_key": stream.replication_keys
         }
         catalog_entries.append(catalog_entry)
 

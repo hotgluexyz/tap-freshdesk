@@ -9,6 +9,7 @@ from tap_freshdesk import helper
 logger = singer.get_logger()
 
 ENDPOINT_BASE = "https://{}.freshdesk.com/api/v2/"
+PER_PAGE = 100
 
 
 # catch all errors and print exception raised
@@ -37,7 +38,10 @@ class FreshdeskClient:
     @helper.ratelimit(1, 2)
     def _make_request(self, method, endpoint, headers=None, params=None, data=None):
         params = params or {}
-        headers = {}
+        params["per_page"] = PER_PAGE
+        headers = headers or {}
+        page = 1
+
         domain = self.config.get("domain", False)
         api_key = self.config.get("api_key", False)
         if not domain:
@@ -54,21 +58,26 @@ class FreshdeskClient:
             params,
         )
 
-        if 'user_agent' in params:
-            headers['User-Agent'] = params['user_agent']
-
         try:
-            req = requests.Request('GET', full_url, params={}, auth=(api_key, ""),
-                                   headers=headers).prepare()
-            logger.info("GET {}".format(req.url))
-            resp = self.session.send(req)
-            if 'Retry-After' in resp.headers:
-                retry_after = int(resp.headers['Retry-After'])
-                logger.info("Rate limit reached. Sleeping for {} seconds".format(retry_after))
-                time.sleep(retry_after)
-                return self._make_request(method, endpoint, headers, params, data)
+            while True:
+                params['page'] = page
+                req = requests.Request('GET', full_url, params=params, auth=(api_key, ""),
+                                       headers=headers).prepare()
+                logger.info("GET {}".format(req.url))
+                resp = self.session.send(req)
+                if 'Retry-After' in resp.headers:
+                    retry_after = int(resp.headers['Retry-After'])
+                    logger.info("Rate limit reached. Sleeping for {} seconds".format(retry_after))
+                    time.sleep(retry_after)
+                    return self._make_request(method, endpoint, headers, params, data)
 
-            resp.raise_for_status()
+                resp.raise_for_status()
+
+                if len(resp.json()) == PER_PAGE:
+                    page += 1
+                else:
+                    break
+
             return resp.json()
 
         except Exception as e:

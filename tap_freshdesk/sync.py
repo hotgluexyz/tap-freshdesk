@@ -13,63 +13,9 @@ from .streams import STREAM_OBJECTS
 logger = singer.get_logger()
 session = requests.Session()
 
-PER_PAGE = 100
 BASE_URL = "https://{}.freshdesk.com"
 CONFIG = {}
 STATE = {}
-
-endpoints = {
-    "tickets": "/api/v2/tickets",
-    "sub_ticket": "/api/v2/tickets/{id}/{entity}",
-    "agents": "/api/v2/agents",
-    "roles": "/api/v2/roles",
-    "groups": "/api/v2/groups",
-    "companies": "/api/v2/companies",
-    "contacts": "/api/v2/contacts"
-}
-
-
-def get_url(endpoint, **kwargs):
-    return BASE_URL.format(CONFIG.get('domain', False)) + endpoints[endpoint].format(**kwargs)
-
-
-@backoff.on_exception(backoff.expo,
-                      requests.exceptions.RequestException,
-                      max_tries=5,
-                      giveup=lambda e: e.response is not None and 400 <= e.response.status_code < 500,
-                      factor=2)
-@helper.ratelimit(1, 2)
-def request(url, params=None):
-    params = params or {}
-    params["per_page"] = PER_PAGE
-    page = 1
-    headers = {}
-    if 'user_agent' in CONFIG:
-        headers['User-Agent'] = CONFIG['user_agent']
-
-    while True:
-        params['page'] = page
-        data = requests.Request('GET', url, params=params, auth=(CONFIG.get('api_key', False), ""),
-                                headers=headers).prepare()
-        logger.info("GET {}".format(data.url))
-        resp = session.send(data)
-        if 'Retry-After' in resp.headers:
-            retry_after = int(resp.headers['Retry-After'])
-            logger.info("Rate limit reached. Sleeping for {} seconds".format(retry_after))
-            time.sleep(retry_after)
-            return request(url, params)
-
-        resp.raise_for_status()
-        for row in data:
-            yield row
-
-        if len(data) == PER_PAGE:
-            page += 1
-        else:
-            break
-
-        return resp
-    return
 
 
 def get_start(entity):

@@ -19,7 +19,7 @@ class Agents(Stream):
     custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = ['updated_at']
+    replication_keys = []
 
     def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
@@ -36,7 +36,7 @@ class Companies(Stream):
     endpoint = 'companies'
     custom_fields = 'company_fields'
     key_properties = ["id"]
-    replication_method = "FULL_TABLE"
+    replication_method = "INCREMENTAL"
     replication_keys = ['updated_at']
 
     def sync(self, start_date):
@@ -53,7 +53,7 @@ class Contacts(Stream):
     stream_name = 'contacts'
     endpoint = 'contacts'
     custom_fields = 'contact_fields'
-    key_properties = ["id", "updated_at"]
+    key_properties = ["id"]
     replication_method = "INCREMENTAL"
     replication_keys = ["updated_at"]
 
@@ -73,7 +73,7 @@ class Groups(Stream):
     custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = ['updated_at']
+    replication_keys = []
 
     def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
@@ -91,7 +91,7 @@ class Roles(Stream):
     custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = ['updated_at']
+    replication_keys = []
 
     def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
@@ -108,7 +108,7 @@ class Tickets(Stream):
     endpoint = 'tickets'
     custom_fields = 'ticket_fields'
     key_properties = ["id"]
-    replication_method = "FULL_TABLE"
+    replication_method = "INCREMENTAL"
     replication_keys = ['updated_at']
 
     ticket_ids = []
@@ -143,7 +143,6 @@ class Tickets(Stream):
             if rec['updated_at'] >= start_date:
                 helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
-            helper.update_state(self.state, self.stream_id, rec['updated_at'])
         singer.write_state(self.state)
 
 
@@ -154,7 +153,7 @@ class Conversations(Stream):
     custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = ['updated_at']
+    replication_keys = []
     ticket_ids = []
 
     def sync(self, start_date):
@@ -190,8 +189,8 @@ class SatisfactionRatings(Stream):
     endpoint = 'surveys/satisfaction_ratings'
     custom_fields = False
     key_properties = ["id"]
-    replication_method = "FULL_TABLE"
-    replication_keys = ['updated_at']
+    replication_method = "INCREMENTAL"
+    replication_keys = ['created_since']
 
     def sync(self, start_date):
         # TODO: optimize 3 nested for loops!
@@ -224,7 +223,7 @@ class TimeEntries(Stream):
     custom_fields = False
     key_properties = ["id"]
     replication_method = "FULL_TABLE"
-    replication_keys = ['updated_at']
+    replication_keys = []
 
     def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
