@@ -1,11 +1,11 @@
 {
   "type": "object",
   "properties": {
-    "description": {
-      "type": ["null", "string"]
-    },
     "id": {
       "type": ["null", "integer"]
+    },
+    "description": {
+      "type": ["null", "string"]
     },
     "name": {
       "type": ["null", "string"]

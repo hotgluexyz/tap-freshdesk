@@ -1,6 +1,9 @@
 {
   "type": "object",
   "properties": {
+    "id": {
+      "type": "integer"
+    },
     "time_spent": {
       "type": [
         "null",
@@ -58,9 +61,6 @@
         "null",
         "boolean"
       ]
-    },
-    "id": {
-      "type": "integer"
     },
     "agent_id": {
       "type": [

@@ -1,6 +1,12 @@
 {
   "type": "object",
   "properties": {
+    "id": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
     "survey_id": {
       "type": [
         "null",
@@ -40,12 +46,6 @@
       ]
     },
     "group_id": {
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
-    "id": {
       "type": [
         "null",
         "integer"

@@ -23,9 +23,7 @@ class FreshdeskClient:
         self.session = requests.Session()
         try:
             # Make an authenticated request after creating the object to any endpoint
-            # TODO: add params
-            params = {}
-            tickets = self.get('tickets', {}, params)
+            tickets = self.get('tickets', {}, {})
             self.tickets = tickets
         except Exception as e:
             logger.info("Error initializing FreshdeskClient, please authenticate.")

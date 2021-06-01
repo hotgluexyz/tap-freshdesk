@@ -1,6 +1,6 @@
 # If using the class-based model, this is where all the stream classes and their corresponding functions live.
 import singer
-import helper
+from tap_freshdesk import helper
 
 LOGGER = singer.get_logger()
 

@@ -4,12 +4,12 @@
     "available": {
       "type": ["null", "boolean"]
     },
+    "id": {
+      "type": ["null", "integer"]
+    },
     "available_since": {
       "type": ["null", "string"],
       "format": "date-time"
-    },
-    "id": {
-      "type": ["null", "integer"]
     },
     "occasional": {
       "type": ["null", "boolean"]

@@ -1,6 +1,12 @@
 {
   "type": "object",
   "properties": {
+    "id": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
     "custom_fields": {
       "type": ["null", "array"],
       "items": {
@@ -50,12 +56,6 @@
       "type": [
         "null",
         "array"
-      ]
-    },
-    "id": {
-      "type": [
-        "null",
-        "integer"
       ]
     },
     "fwd_emails": {

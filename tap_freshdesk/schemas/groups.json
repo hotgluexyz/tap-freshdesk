@@ -1,6 +1,9 @@
 {
   "type": "object",
   "properties": {
+    "id": {
+      "type": ["null", "integer"]
+    },
     "agent_ids": {
       "type": ["null", "array"],
       "items": {
@@ -17,9 +20,6 @@
       "type": ["null", "string"]
     },
     "escalate_to": {
-      "type": ["null", "integer"]
-    },
-    "id": {
       "type": ["null", "integer"]
     },
     "name": {

@@ -1,11 +1,11 @@
 {
     "type": "object",
     "properties": {
-        "body_text": {
-            "type": ["null", "string"]
-        },
         "id": {
             "type": ["null", "integer"]
+        },
+        "body_text": {
+            "type": ["null", "string"]
         },
         "incoming": {
             "type": ["null", "boolean"]

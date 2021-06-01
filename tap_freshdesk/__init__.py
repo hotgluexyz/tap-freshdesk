@@ -13,7 +13,7 @@ REQUIRED_CONFIG_KEYS = ['api_key', 'domain', 'start_date']
 
 @utils.handle_top_exception(LOGGER)
 def main():
-    required_config_keys = ['start_date'] # TODO: check- required only start date?
+    required_config_keys = ['start_date']
     args = singer.parse_args(required_config_keys)
 
     config = args.config
@@ -36,7 +36,6 @@ def main():
         STATE.update(state)
 
         sync(freshdesk_client, config, state, catalog)
-        # do_sync()
 
 
 if __name__ == "__main__":

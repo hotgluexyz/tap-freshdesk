@@ -1,6 +1,9 @@
 {
   "type": "object",
   "properties": {
+    "id": {
+      "type": ["null", "integer"]
+    },
     "custom_fields": {
       "type": ["null", "array"],
       "items": {
@@ -23,9 +26,6 @@
       "items": {
         "type": ["null", "string"]
       }
-    },
-    "id": {
-      "type": ["null", "integer"]
     },
     "name": {
       "type": ["null", "string"]

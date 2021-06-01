@@ -69,47 +69,18 @@ def request(url, params=None):
             break
 
         return resp
-
-    # req = requests.Request('GET', url, params=params, auth=(CONFIG.get('api_key', False), ""),
-    #                        headers=headers).prepare()
-    # logger.info("GET {}".format(req.url))
-    # resp = session.send(req)
-    #
-    # if 'Retry-After' in resp.headers:
-    #     retry_after = int(resp.headers['Retry-After'])
-    #     logger.info("Rate limit reached. Sleeping for {} seconds".format(retry_after))
-    #     time.sleep(retry_after)
-    #     return request(url, params)
-    #
-    # resp.raise_for_status()
-
     return
 
 
 def get_start(entity):
     if entity not in STATE:
         STATE[entity] = CONFIG.get('start_date', False)
-
     return STATE[entity]
-
-
-# Review catalog and make a list of selected streams
-def get_selected_streams(catalog):
-    selected_streams = set()
-    for stream in catalog.streams:
-        mdata = metadata.to_map(stream.metadata)
-        root_metadata = mdata.get(())
-        # if root_metadata and root_metadata.get('selected') is True:
-        #     selected_streams.add(stream.tap_stream_id)
-        selected_streams.add(stream.tap_stream_id)
-    return list(selected_streams)
 
 
 def sync(client, config: dict, state: dict, catalog: singer.Catalog):
     logger.info("Starting FreshDesk sync")
     selected_streams = catalog.get_selected_streams(state)
-    # selected_streams = get_selected_streams(catalog)
-
     for stream in selected_streams:
         stream_id = stream.tap_stream_id
 
