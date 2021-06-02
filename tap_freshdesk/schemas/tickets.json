@@ -7,6 +7,37 @@
         "integer"
       ]
     },
+    "created_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "name": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "description_text": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "requester_id": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "type": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "custom_fields": {
       "type": ["null", "array"],
       "items": {
@@ -31,19 +62,6 @@
       "type": [
         "null",
         "array"
-      ]
-    },
-    "updated_at": {
-      "type": [
-        "null",
-        "string"
-      ],
-      "format": "date-time"
-    },
-    "type": {
-      "type": [
-        "null",
-        "string"
       ]
     },
     "to_emails": {
@@ -186,24 +204,6 @@
         "string"
       ]
     },
-    "description_text": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "requester_id": {
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
-    "name": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
     "product_id": {
       "type": [
         "null",
@@ -215,13 +215,6 @@
         "null",
         "boolean"
       ]
-    },
-    "created_at": {
-      "type": [
-        "null",
-        "string"
-      ],
-      "format": "date-time"
     },
     "spam": {
       "type": [
@@ -327,6 +320,13 @@
           "format": "date-time"
         }
       }
+    },
+    "updated_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
     }
   }
 }

@@ -4,6 +4,22 @@
         "id": {
             "type": ["null", "integer"]
         },
+        "created_at": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        },
+        "ticket_id": {
+            "type": ["null", "integer"]
+        },
+        "user_id": {
+            "type": ["null", "integer"]
+        },
+        "source": {
+            "type": ["null", "integer"]
+        },
         "body_text": {
             "type": ["null", "string"]
         },
@@ -13,17 +29,8 @@
         "private": {
             "type": ["null", "boolean"]
         },
-        "user_id": {
-            "type": ["null", "integer"]
-        },
         "support_email": {
             "type": ["null", "string"]
-        },
-        "source": {
-            "type": ["null", "integer"]
-        },
-        "ticket_id": {
-            "type": ["null", "integer"]
         },
         "to_emails": {
             "anyOf": [
@@ -67,13 +74,7 @@
                 }
             ]
         },
-        "created_at": {
-            "type": [
-                "null",
-                "string"
-            ],
-            "format": "date-time"
-        },
+
         "updated_at": {
             "type": [
                 "null",

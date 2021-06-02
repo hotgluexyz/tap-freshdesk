@@ -26,10 +26,8 @@ def get_start(entity):
 
 def sync(client, config: dict, state: dict, catalog: singer.Catalog):
     logger.info("Starting FreshDesk sync")
-    selected_streams = catalog.get_selected_streams(state)
-    for stream in selected_streams:
+    for stream in catalog.streams:
         stream_id = stream.tap_stream_id
-
         stream_schema = stream.schema
         stream_object = STREAM_OBJECTS.get(stream_id)(client, config, state)
         schema = stream_schema.to_dict()

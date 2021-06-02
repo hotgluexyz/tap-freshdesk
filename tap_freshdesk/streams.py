@@ -24,10 +24,7 @@ class Agents(Stream):
     def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
         for rec in records:
-            if rec['updated_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
-        singer.write_state(self.state)
 
 
 class Companies(Stream):
@@ -40,11 +37,15 @@ class Companies(Stream):
     replication_keys = ['updated_at']
 
     def sync(self, start_date):
-        records = self.client.get(self.endpoint, params={})
+        params = {
+            'updated_since': start_date,
+        }
+        records = self.client.get(self.endpoint, params=params)
         for rec in records:
             if rec['updated_at'] >= start_date:
                 helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
+        self.state = {self.stream_id: start_date}
         singer.write_state(self.state)
 
 
@@ -58,7 +59,8 @@ class Contacts(Stream):
     replication_keys = ["updated_at"]
 
     def sync(self, start_date):
-        records = self.client.get(self.endpoint, params={})
+        params = {'updated_since': start_date}
+        records = self.client.get(self.endpoint, params=params)
         for rec in records:
             if rec['updated_at'] >= start_date:
                 helper.update_state(self.state, self.stream_id, rec['updated_at'])
@@ -78,10 +80,7 @@ class Groups(Stream):
     def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
         for rec in records:
-            if rec['updated_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
-        singer.write_state(self.state)
 
 
 class Roles(Stream):
@@ -96,10 +95,7 @@ class Roles(Stream):
     def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
         for rec in records:
-            if rec['updated_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
-        singer.write_state(self.state)
 
 
 class Tickets(Stream):
@@ -140,9 +136,8 @@ class Tickets(Stream):
 
         for rec in records:
             rec.pop('attachments', None)
-            if rec['updated_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['updated_at'])
-            yield rec
+            start_date = rec['updated_at']
+        self.state = {self.stream_id: start_date}
         singer.write_state(self.state)
 
 
@@ -163,10 +158,7 @@ class Conversations(Stream):
             for rec in records:
                 rec.pop("attachments", None)
                 rec.pop("body", None)
-                if rec['updated_at'] >= start_date:
-                    helper.update_state(self.state, self.stream_id, rec['updated_at'])
                 yield rec
-            singer.write_state(self.state)
 
 
 RATINGS = {
@@ -194,12 +186,13 @@ class SatisfactionRatings(Stream):
 
     def sync(self, start_date):
         # TODO: optimize 3 nested for loops!
+        params = {'created_since': start_date}
         questions = [q.get("questions", False) and q.get("questions", False)[0] for q in
                      self.client.get("surveys", params={})]
-        records = self.client.get(self.endpoint, params={})
+        records = self.client.get(self.endpoint, params=params)
         for rec in records:
-            if rec['updated_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['updated_at'])
+            if rec['created_at'] >= start_date:
+                helper.update_state(self.state, self.stream_id, rec['created_at'])
 
             if rec.get('ratings', False):
                 response = []
@@ -213,6 +206,7 @@ class SatisfactionRatings(Stream):
                 rec.pop('ratings')  # remove dict
                 rec['ratings'] = response  # insert array of objects
             yield rec
+        self.state = {self.stream_id: start_date}
         singer.write_state(self.state)
 
 
@@ -228,10 +222,7 @@ class TimeEntries(Stream):
     def sync(self, start_date):
         records = self.client.get(self.endpoint, params={})
         for rec in records:
-            if rec['updated_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['updated_at'])
             yield rec
-        singer.write_state(self.state)
 
 
 STREAM_OBJECTS = {

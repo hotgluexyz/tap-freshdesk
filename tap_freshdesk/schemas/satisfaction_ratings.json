@@ -7,6 +7,13 @@
         "integer"
       ]
     },
+    "created_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
     "survey_id": {
       "type": [
         "null",
@@ -24,20 +31,6 @@
         "null",
         "string"
       ]
-    },
-    "created_at": {
-      "type": [
-        "null",
-        "string"
-      ],
-      "format": "date-time"
-    },
-    "updated_at": {
-      "type": [
-        "null",
-        "string"
-      ],
-      "format": "date-time"
     },
     "agent_id": {
       "type": [
@@ -94,6 +87,13 @@
           }
         }
       }
+    },
+    "updated_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
     }
   }
 }

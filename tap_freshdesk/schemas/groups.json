@@ -4,6 +4,16 @@
     "id": {
       "type": ["null", "integer"]
     },
+    "created_at": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "name": {
+      "type": ["null", "string"]
+    },
+    "description": {
+      "type": ["null", "string"]
+    },
     "agent_ids": {
       "type": ["null", "array"],
       "items": {
@@ -16,21 +26,11 @@
     "business_hour_id": {
       "type": ["null", "integer"]
     },
-    "description": {
-      "type": ["null", "string"]
-    },
     "escalate_to": {
       "type": ["null", "integer"]
     },
-    "name": {
-      "type": ["null", "string"]
-    },
     "unassigned_for": {
       "type": ["null", "string"]
-    },
-    "created_at": {
-      "type": ["null", "string"],
-      "format": "date-time"
     },
     "updated_at": {
       "type": ["null", "string"],

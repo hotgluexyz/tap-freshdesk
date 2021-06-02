@@ -4,6 +4,29 @@
     "id": {
       "type": ["null", "integer"]
     },
+    "created_at": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "name": {
+      "type": ["null", "string"]
+    },
+    "domains": {
+      "type": ["null", "array"],
+      "items": {
+        "type": ["null", "string"]
+      }
+    },
+    "description": {
+      "type": ["null", "string"]
+    },
+    "note": {
+      "type": ["null", "string"]
+    },
+    "updated_at": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
     "custom_fields": {
       "type": ["null", "array"],
       "items": {
@@ -17,29 +40,6 @@
           }
         }
       }
-    },
-    "description": {
-      "type": ["null", "string"]
-    },
-    "domains": {
-      "type": ["null", "array"],
-      "items": {
-        "type": ["null", "string"]
-      }
-    },
-    "name": {
-      "type": ["null", "string"]
-    },
-    "note": {
-      "type": ["null", "string"]
-    },
-    "created_at": {
-      "type": ["null", "string"],
-      "format": "date-time"
-    },
-    "updated_at": {
-      "type": ["null", "string"],
-      "format": "date-time"
     }
   }
 }

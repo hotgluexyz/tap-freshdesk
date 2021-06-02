@@ -1,11 +1,15 @@
 {
   "type": "object",
   "properties": {
-    "available": {
-      "type": ["null", "boolean"]
-    },
     "id": {
       "type": ["null", "integer"]
+    },
+    "created_at": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "available": {
+      "type": ["null", "boolean"]
     },
     "available_since": {
       "type": ["null", "string"],
@@ -31,10 +35,6 @@
       "items": {
         "type": ["null", "integer"]
       }
-    },
-    "created_at": {
-      "type": ["null", "string"],
-      "format": "date-time"
     },
     "updated_at": {
       "type": ["null", "string"],
