@@ -14,6 +14,13 @@ class Stream:
         self.state = state
 
 
+TICKET_SCOPE = {
+    1: "Global Access",
+    2: "Group Access",
+    3: "Restricted Access"
+}
+
+
 class Agents(Stream):
     stream_id = 'agents'
     stream_name = 'agents'
@@ -26,6 +33,7 @@ class Agents(Stream):
     def sync(self, start_date):
         for page in self.client.get(self.endpoint, params={}):
             for rec in page:
+                rec['ticket_label'] = TICKET_SCOPE.get(rec.get('ticket_scope', False), False)
                 yield rec
 
 
@@ -165,8 +173,8 @@ class Tickets(Stream):
             for rec in page:
                 rec.pop('attachments', None)
                 rec['source_label'] = SOURCE.get(rec.get('source', False), False)
-                rec['status_label'] = SOURCE.get(rec.get('status', False), False)
-                rec['priority_label'] = SOURCE.get(rec.get('priority', False), False)
+                rec['status_label'] = STATUS.get(rec.get('status', False), False)
+                rec['priority_label'] = PRIORITY.get(rec.get('priority', False), False)
                 start_date = rec['updated_at']
                 yield rec
             start_date = helper.strptime(start_date) + datetime.timedelta(seconds=1)

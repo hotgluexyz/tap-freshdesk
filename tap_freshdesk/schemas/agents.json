@@ -24,6 +24,9 @@
     "ticket_scope": {
       "type": ["null", "integer"]
     },
+    "ticket_label": {
+      "type": ["null", "string"]
+    },
     "group_ids": {
       "type": ["null", "array"],
       "items": {
