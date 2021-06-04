@@ -61,9 +61,12 @@ class Contacts(Stream):
             for rec in page:
                 if rec['updated_at'] >= start_date:
                     # updated with one second to not get doubled records for the same datetime
-                    new_date = helper.strptime(rec['updated_at']) + datetime.timedelta(seconds=1)
-                    helper.update_state(self.state, self.stream_id, new_date)
+                    start_date = rec['updated_at']
                 yield rec
+            start_date = helper.strptime(start_date) + datetime.timedelta(seconds=1)
+            start_date = helper.strftime(start_date)
+
+            helper.update_state(self.state, self.stream_id, start_date)
             singer.write_state(self.state)
 
 
@@ -96,6 +99,20 @@ class Roles(Stream):
             for rec in page:
                 yield rec
 
+
+# Ticket mapping for source, status, priority
+SOURCE = {
+    1: "Email",
+    2: "Portal",
+    3: "Phone",
+    7: "Chat",
+    9: "Feedback Widget",
+    10: "Outbound Email"
+}
+#
+# STATUS = {
+#
+# }
 
 class Tickets(Stream):
     stream_id = 'tickets'
@@ -136,9 +153,12 @@ class Tickets(Stream):
         for page in records:
             for rec in page:
                 rec.pop('attachments', None)
-                new_date = helper.strptime(rec['updated_at']) + datetime.timedelta(seconds=1)
-                helper.update_state(self.state, self.stream_id, new_date)
+                start_date = rec['updated_at']
                 yield rec
+            start_date = helper.strptime(start_date) + datetime.timedelta(seconds=1)
+            start_date = helper.strftime(start_date)
+
+            helper.update_state(self.state, self.stream_id, start_date)
             singer.write_state(self.state)
 
 
@@ -198,11 +218,11 @@ class SatisfactionRatings(Stream):
                     questions.append(question.get("questions", False)[0])
 
         records = self.client.get(self.endpoint, params=params)
+
         for page in records:
             for rec in page:
-                if self.state.get(self.stream_id, False) and rec['created_at'] > self.state[self.stream_id]:
-                    new_date = helper.strptime(rec['created_at']) + datetime.timedelta(seconds=1)
-                    helper.update_state(self.state, self.stream_id, new_date)
+                if rec['created_at'] > start_date:
+                    start_date = rec['created_at']
                 if rec.get('ratings', False):
                     response = []
                     for k, v in rec['ratings'].items():
@@ -215,6 +235,10 @@ class SatisfactionRatings(Stream):
                     rec.pop('ratings')  # remove dict
                     rec['ratings'] = response  # insert array of objects
                 yield rec
+            start_date = helper.strptime(start_date) + datetime.timedelta(seconds=1)
+            start_date = helper.strftime(start_date)
+
+            helper.update_state(self.state, self.stream_id, start_date)
             singer.write_state(self.state)
 
 

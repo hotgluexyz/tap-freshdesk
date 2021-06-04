@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Calls to the api are made here.
 import time
+from concurrent.futures import ThreadPoolExecutor
+
 import singer
 import backoff
 import requests
@@ -14,6 +16,10 @@ PER_PAGE = 100
 
 # catch all errors and print exception raised
 class FreshdeskError(Exception):
+    pass
+
+
+class RateLimitException(Exception):
     pass
 
 
@@ -35,7 +41,20 @@ class FreshdeskClient:
                           max_tries=5,
                           giveup=lambda e: e.response is not None and 400 <= e.response.status_code < 500,
                           factor=2)
+    @backoff.on_exception(backoff.expo, RateLimitException)
     @helper.ratelimit(1, 2)
+    def _make_request_internal(self, full_url=None, params=None, api_key=None, headers=None):
+        req = requests.Request('GET', full_url, params=params, auth=(api_key, ""),
+                               headers=headers).prepare()
+        logger.info("GET {}".format(req.url))
+        resp = self.session.send(req)
+        if 'Retry-After' in resp.headers:
+            retry_after = int(resp.headers['Retry-After'])
+            logger.info("Rate limit reached. Sleeping for {} seconds".format(retry_after))
+            time.sleep(retry_after)
+            raise RateLimitException()
+        return resp
+
     def _make_request(self, method, endpoint, headers=None, params=None, data=None):
         params = params or {}
         params["per_page"] = PER_PAGE
@@ -57,21 +76,17 @@ class FreshdeskClient:
             endpoint,
             params,
         )
+        # with ThreadPoolExecutor(max_workers=50) as executor:
+        #     for _ in range(500):
+        #         future = executor.submit(self._make_request_internal, full_url, params, api_key, headers)
+                # print(future.result())
 
         try:
 
             while True:
                 params['page'] = page
-                req = requests.Request('GET', full_url, params=params, auth=(api_key, ""),
-                                       headers=headers).prepare()
-                logger.info("GET {}".format(req.url))
-                resp = self.session.send(req)
-                if 'Retry-After' in resp.headers:
-                    retry_after = int(resp.headers['Retry-After'])
-                    logger.info("Rate limit reached. Sleeping for {} seconds".format(retry_after))
-                    time.sleep(retry_after)
-                    return self._make_request(method, endpoint, headers, params, data)
 
+                resp = self._make_request_internal(full_url, params, api_key, headers)
                 resp.raise_for_status()
 
                 if len(resp.json()) == PER_PAGE:
