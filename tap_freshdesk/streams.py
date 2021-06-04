@@ -1,6 +1,8 @@
 # If using the class-based model, this is where all the stream classes and their corresponding functions live.
 import singer
+import datetime
 from tap_freshdesk import helper
+import requests
 
 LOGGER = singer.get_logger()
 
@@ -22,31 +24,25 @@ class Agents(Stream):
     replication_keys = []
 
     def sync(self, start_date):
-        records = self.client.get(self.endpoint, params={})
-        for rec in records:
-            yield rec
+        for page in self.client.get(self.endpoint, params={}):
+            for rec in page:
+                yield rec
 
 
 class Companies(Stream):
     stream_id = 'companies'
     stream_name = 'companies'
     endpoint = 'companies'
+
     custom_fields = 'company_fields'
     key_properties = ["id"]
-    replication_method = "INCREMENTAL"
-    replication_keys = ['updated_at']
+    replication_method = "FULL_TABLE"
+    replication_keys = []
 
     def sync(self, start_date):
-        params = {
-            'updated_since': start_date,
-        }
-        records = self.client.get(self.endpoint, params=params)
-        for rec in records:
-            if rec['updated_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['updated_at'])
-            yield rec
-        self.state = {self.stream_id: start_date}
-        singer.write_state(self.state)
+        for page in self.client.get(self.endpoint, params={}):
+            for rec in page:
+                yield rec
 
 
 class Contacts(Stream):
@@ -59,13 +55,16 @@ class Contacts(Stream):
     replication_keys = ["updated_at"]
 
     def sync(self, start_date):
-        params = {'updated_since': start_date}
-        records = self.client.get(self.endpoint, params=params)
-        for rec in records:
-            if rec['updated_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['updated_at'])
-            yield rec
-        singer.write_state(self.state)
+        params = {'_updated_since': start_date}
+        records = list(self.client.get(self.endpoint, params=params))
+        for page in records:
+            for rec in page:
+                if rec['updated_at'] >= start_date:
+                    # updated with one second to not get doubled records for the same datetime
+                    new_date = helper.strptime(rec['updated_at']) + datetime.timedelta(seconds=1)
+                    helper.update_state(self.state, self.stream_id, new_date)
+                yield rec
+            singer.write_state(self.state)
 
 
 class Groups(Stream):
@@ -78,9 +77,9 @@ class Groups(Stream):
     replication_keys = []
 
     def sync(self, start_date):
-        records = self.client.get(self.endpoint, params={})
-        for rec in records:
-            yield rec
+        for page in self.client.get(self.endpoint, params={}):
+            for rec in page:
+                yield rec
 
 
 class Roles(Stream):
@@ -93,9 +92,9 @@ class Roles(Stream):
     replication_keys = []
 
     def sync(self, start_date):
-        records = self.client.get(self.endpoint, params={})
-        for rec in records:
-            yield rec
+        for page in self.client.get(self.endpoint, params={}):
+            for rec in page:
+                yield rec
 
 
 class Tickets(Stream):
@@ -114,10 +113,10 @@ class Tickets(Stream):
             for ticket in Tickets.ticket_ids:
                 yield ticket
         else:
-            records = self.client.get(self.endpoint)
-            for rec in records:
-                Tickets.ticket_ids.append(rec['id'])
-                yield rec['id']
+            for page in self.client.get(self.endpoint):
+                for rec in page:
+                    Tickets.ticket_ids.append(rec['id'])
+                    yield rec['id']
 
     def sync(self, start_date):
         params = {
@@ -127,18 +126,20 @@ class Tickets(Stream):
             'include': "requester,company,stats"
         }
 
-        records = self.client.get(self.endpoint, params=params)
+        records = list(self.client.get(self.endpoint, params=params))
         for predefined_filter in ["deleted", "spam"]:
             LOGGER.info("Syncing tickets with filter {}".format(predefined_filter))
             params['filter'] = predefined_filter
             # Get filtered record, as deleted records won't show on unfiltered call
             records.extend(self.client.get(self.endpoint, params=params))
 
-        for rec in records:
-            rec.pop('attachments', None)
-            start_date = rec['updated_at']
-        self.state = {self.stream_id: start_date}
-        singer.write_state(self.state)
+        for page in records:
+            for rec in page:
+                rec.pop('attachments', None)
+                new_date = helper.strptime(rec['updated_at']) + datetime.timedelta(seconds=1)
+                helper.update_state(self.state, self.stream_id, new_date)
+                yield rec
+            singer.write_state(self.state)
 
 
 class Conversations(Stream):
@@ -155,10 +156,12 @@ class Conversations(Stream):
         tickets = Tickets(self.client, self.config, self.state)
         for ticket_id in tickets.get_all_ticket_ids():
             records = self.client.get(self.endpoint.format(id=ticket_id), params={})
-            for rec in records:
-                rec.pop("attachments", None)
-                rec.pop("body", None)
-                yield rec
+
+            for page in records:
+                for rec in page:
+                    rec.pop("attachments", None)
+                    rec.pop("body", None)
+                    yield rec
 
 
 RATINGS = {
@@ -182,32 +185,37 @@ class SatisfactionRatings(Stream):
     custom_fields = False
     key_properties = ["id"]
     replication_method = "INCREMENTAL"
-    replication_keys = ['created_since']
+    replication_keys = ['created_at']
 
     def sync(self, start_date):
         # TODO: optimize 3 nested for loops!
         params = {'created_since': start_date}
-        questions = [q.get("questions", False) and q.get("questions", False)[0] for q in
-                     self.client.get("surveys", params={})]
+        questions = []
+        # Get survey questions (id, label)
+        for question_page in self.client.get("surveys", params={}):
+            for question in question_page:
+                if question.get("questions", False):
+                    questions.append(question.get("questions", False)[0])
+
         records = self.client.get(self.endpoint, params=params)
-        for rec in records:
-            if rec['created_at'] >= start_date:
-                helper.update_state(self.state, self.stream_id, rec['created_at'])
+        for page in records:
+            for rec in page:
+                if self.state.get(self.stream_id, False) and rec['created_at'] > self.state[self.stream_id]:
+                    new_date = helper.strptime(rec['created_at']) + datetime.timedelta(seconds=1)
+                    helper.update_state(self.state, self.stream_id, new_date)
+                if rec.get('ratings', False):
+                    response = []
+                    for k, v in rec['ratings'].items():
+                        label = [qw["label"] for qw in questions if qw["id"] == k]
+                        response.append({"question_id": k,
+                                         "question_label": label and label[0] or "",
+                                         "rating_id": v,
+                                         "rating_label": RATINGS.get(v, False)})
 
-            if rec.get('ratings', False):
-                response = []
-                for k, v in rec['ratings'].items():
-                    label = [qw["label"] for qw in questions if qw["id"] == k]
-                    response.append({"question_id": k,
-                                     "question_label": label and label[0] or "",
-                                     "rating_id": v,
-                                     "rating_label": RATINGS.get(v, False)})
-
-                rec.pop('ratings')  # remove dict
-                rec['ratings'] = response  # insert array of objects
-            yield rec
-        self.state = {self.stream_id: start_date}
-        singer.write_state(self.state)
+                    rec.pop('ratings')  # remove dict
+                    rec['ratings'] = response  # insert array of objects
+                yield rec
+            singer.write_state(self.state)
 
 
 class TimeEntries(Stream):
@@ -220,9 +228,10 @@ class TimeEntries(Stream):
     replication_keys = []
 
     def sync(self, start_date):
-        records = self.client.get(self.endpoint, params={})
-        for rec in records:
-            yield rec
+        for page in self.client.get(self.endpoint, params={}):
+            for rec in page:
+                yield rec
+            singer.write_state(self.state)
 
 
 STREAM_OBJECTS = {

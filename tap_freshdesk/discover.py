@@ -35,17 +35,17 @@ def discover(client):
         # Add custom fields
         if stream.custom_fields:
             response = client._make_request('GET', stream.custom_fields)
-
-            for field in response:
-                field_name = field.get('name', False)
-                if field.get('default', False):
-                    continue
-                # add mapping ex. custom_number -> number
-                field_type = field.get('type', False)
-                schema["properties"][field_name] = map_type(field_type)
-                if field_type == 'nested_field':
-                    for nested_field in field.get('nested_ticket_fields', []):
-                        schema["properties"][nested_field['name']] = map_type(field_type)
+            for page in response:
+                for field in page:
+                    field_name = field.get('name', False)
+                    if field.get('default', False):
+                        continue
+                    # add mapping ex. custom_number -> number
+                    field_type = field.get('type', False)
+                    schema["properties"][field_name] = map_type(field_type)
+                    if field_type == 'nested_field':
+                        for nested_field in field.get('nested_ticket_fields', []):
+                            schema["properties"][nested_field['name']] = map_type(field_type)
             # remove custom_fields parent as they are added directly in schema
             schema["properties"].pop('custom_fields')
 

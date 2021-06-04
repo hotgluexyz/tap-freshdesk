@@ -66,7 +66,7 @@ def update_state(state, entity, dt):
     if entity not in state:
         state[entity] = dt
 
-    if dt >= state[entity]:
+    if dt > state[entity]:
         state[entity] = dt
 
 

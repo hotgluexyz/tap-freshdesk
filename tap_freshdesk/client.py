@@ -59,6 +59,7 @@ class FreshdeskClient:
         )
 
         try:
+
             while True:
                 params['page'] = page
                 req = requests.Request('GET', full_url, params=params, auth=(api_key, ""),
@@ -76,12 +77,13 @@ class FreshdeskClient:
                 if len(resp.json()) == PER_PAGE:
                     page += 1
                 else:
+                    yield resp.json()
                     break
 
-            return resp.json()
+                yield resp.json()
 
         except Exception as e:
             raise Exception("EXCEPTION RAISED: ", e)
 
     def get(self, url, headers=None, params=None):
-        return self._make_request("GET", url, headers=headers, params=params)
+        yield from self._make_request("GET", url, headers=headers, params=params)

@@ -33,48 +33,26 @@
             "type": ["null", "string"]
         },
         "to_emails": {
-            "anyOf": [
-                {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "type": "null"
-                }
-            ]
+          "type": ["null", "array"],
+          "items": {
+            "type": ["null", "string"]
+          }
         },
         "from_email": {
             "type": ["null", "string"]
         },
         "cc_emails": {
-            "anyOf": [
-                {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "type": "null"
-                }
-            ]
+          "type": ["null", "array"],
+          "items": {
+            "type": ["null", "string"]
+          }
         },
         "bcc_emails": {
-            "anyOf": [
-                {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "type": "null"
-                }
-            ]
+          "type": ["null", "array"],
+          "items": {
+            "type": ["null", "string"]
+          }
         },
-
         "updated_at": {
             "type": [
                 "null",
