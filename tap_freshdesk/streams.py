@@ -109,10 +109,21 @@ SOURCE = {
     9: "Feedback Widget",
     10: "Outbound Email"
 }
-#
-# STATUS = {
-#
-# }
+
+STATUS = {
+    2: "Open",
+    3: "Pending",
+    4: "Resolved",
+    5: "Closed"
+}
+
+PRIORITY = {
+    1: "Low",
+    2: "Medium",
+    3: "High",
+    4: "Urgent"
+}
+
 
 class Tickets(Stream):
     stream_id = 'tickets'
@@ -153,6 +164,9 @@ class Tickets(Stream):
         for page in records:
             for rec in page:
                 rec.pop('attachments', None)
+                rec['source_label'] = SOURCE.get(rec.get('source', False), False)
+                rec['status_label'] = SOURCE.get(rec.get('status', False), False)
+                rec['priority_label'] = SOURCE.get(rec.get('priority', False), False)
                 start_date = rec['updated_at']
                 yield rec
             start_date = helper.strptime(start_date) + datetime.timedelta(seconds=1)
@@ -185,16 +199,16 @@ class Conversations(Stream):
 
 
 RATINGS = {
-    "103": "Extremely Happy",
-    "102": "Very Happy",
-    "101": "Happy",
-    "100": "Neutral",
-    "-101": "Unhappy",
-    "-102": "Very Unhappy",
-    "-103": "Extremely Unhappy",
-    "1": "Happy",
-    "2": "Neutral",
-    "3": "Unhappy"
+    103: "Extremely Happy",
+    102: "Very Happy",
+    101: "Happy",
+    100: "Neutral",
+    -101: "Unhappy",
+    -102: "Very Unhappy",
+    -103: "Extremely Unhappy",
+    1: "Happy",
+    2: "Neutral",
+    3: "Unhappy"
 }
 
 

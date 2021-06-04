@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # Calls to the api are made here.
 import time
-from concurrent.futures import ThreadPoolExecutor
-
 import singer
 import backoff
 import requests
@@ -76,11 +74,6 @@ class FreshdeskClient:
             endpoint,
             params,
         )
-        # with ThreadPoolExecutor(max_workers=50) as executor:
-        #     for _ in range(500):
-        #         future = executor.submit(self._make_request_internal, full_url, params, api_key, headers)
-                # print(future.result())
-
         try:
 
             while True:

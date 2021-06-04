@@ -91,6 +91,12 @@
     "source": {
       "type": [
         "null",
+        "integer"
+      ]
+    },
+    "source_label": {
+      "type": [
+        "null",
         "string"
       ]
     },
@@ -114,6 +120,12 @@
       ]
     },
     "priority": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "priority_label": {
       "type": [
         "null",
         "string"
@@ -151,6 +163,12 @@
       ]
     },
     "status": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "status_label": {
       "type": [
         "null",
         "string"
