@@ -10,6 +10,7 @@ logger = singer.get_logger()
 
 ENDPOINT_BASE = "https://{}.freshdesk.com/api/v2/"
 PER_PAGE = 100
+PAGE_LIMIT = 300
 
 
 # catch all errors and print exception raised
@@ -58,7 +59,6 @@ class FreshdeskClient:
         params["per_page"] = PER_PAGE
         headers = headers or {}
         page = 1
-
         domain = self.config.get("domain", False)
         api_key = self.config.get("api_key", False)
         if not domain:
@@ -66,6 +66,7 @@ class FreshdeskClient:
         if not api_key:
             raise FreshdeskError("EXCEPTION RAISED: API KEY not found!")
 
+        updated_at = params.get('updated_since', False) or params.get('_updated_since', )
         full_url = ENDPOINT_BASE.format(domain) + endpoint
         logger.info(
             "%s - Making request to %s endpoint %s, with params %s",
@@ -74,10 +75,20 @@ class FreshdeskClient:
             endpoint,
             params,
         )
+
         try:
 
             while True:
                 params['page'] = page
+
+                # if page is at its limit, reset page and update search param with updated_at from data's last record
+                if page == PAGE_LIMIT:
+                    logger.info("Reset pagination.")
+                    page = 1
+                    if params.get('updated_since', False):
+                        params['updated_since'] = updated_at
+                    if params.get('_updated_since', False):
+                        params['_updated_since'] = updated_at
 
                 resp = self._make_request_internal(full_url, params, api_key, headers)
                 resp.raise_for_status()
@@ -85,7 +96,12 @@ class FreshdeskClient:
                 if len(resp.json()) == PER_PAGE:
                     page += 1
                 else:
-                    yield resp.json()
+                    response_data = resp.json()
+                    # get the last record fetched (ordered asc by updated date)
+                    last_record = response_data and response_data[:-1][0]
+                    if last_record and 'updated_at' in last_record:
+                        updated_at = last_record['updated_at']
+                    yield response_data
                     break
 
                 yield resp.json()
