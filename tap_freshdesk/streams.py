@@ -230,7 +230,6 @@ class SatisfactionRatings(Stream):
     replication_keys = ['created_at']
 
     def sync(self, start_date):
-        # TODO: optimize 3 nested for loops!
         params = {'created_since': start_date}
         questions = []
         # Get survey questions (id, label)

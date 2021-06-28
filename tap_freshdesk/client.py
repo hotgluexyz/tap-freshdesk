@@ -5,6 +5,7 @@ import singer
 import backoff
 import requests
 from tap_freshdesk import helper
+from dateutil.relativedelta import relativedelta
 
 logger = singer.get_logger()
 
@@ -79,10 +80,8 @@ class FreshdeskClient:
         try:
 
             while True:
-                params['page'] = page
-
                 # if page is at its limit, reset page and update search param with updated_at from data's last record
-                if page == PAGE_LIMIT:
+                if page > PAGE_LIMIT:
                     logger.info("Reset pagination.")
                     page = 1
                     if params.get('updated_since', False):
@@ -90,21 +89,24 @@ class FreshdeskClient:
                     if params.get('_updated_since', False):
                         params['_updated_since'] = updated_at
 
+                params['page'] = page
                 resp = self._make_request_internal(full_url, params, api_key, headers)
                 resp.raise_for_status()
+
+                response_data = resp.json()
+                # get the last record fetched (ordered asc by updated date)
+                last_record = response_data and response_data[-1]
+                if last_record and 'updated_at' in last_record:
+                    # add one sec to searching date in order to not got the same records twice
+                    updated_at = helper.strptime(last_record['updated_at']) + relativedelta(seconds=1)
+                    updated_at = helper.strftime(updated_at)
+                yield response_data
 
                 if len(resp.json()) == PER_PAGE:
                     page += 1
                 else:
-                    response_data = resp.json()
-                    # get the last record fetched (ordered asc by updated date)
-                    last_record = response_data and response_data[:-1][0]
-                    if last_record and 'updated_at' in last_record:
-                        updated_at = last_record['updated_at']
-                    yield response_data
+                    # no data in the next page
                     break
-
-                yield resp.json()
 
         except Exception as e:
             raise Exception("EXCEPTION RAISED: ", e)
