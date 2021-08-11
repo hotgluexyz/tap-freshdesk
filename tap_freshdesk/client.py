@@ -83,11 +83,12 @@ class FreshdeskClient:
                 # if page is at its limit, reset page and update search param with updated_at from data's last record
                 if page > PAGE_LIMIT:
                     logger.info("Reset pagination.")
-                    page = 1
+                    params['reset_pagination'] = True
                     if params.get('updated_since', False):
                         params['updated_since'] = updated_at
                     if params.get('_updated_since', False):
                         params['_updated_since'] = updated_at
+                    break
 
                 params['page'] = page
                 resp = self._make_request_internal(full_url, params, api_key, headers)

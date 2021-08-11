@@ -2,7 +2,6 @@
 import singer
 import datetime
 from tap_freshdesk import helper
-import requests
 
 LOGGER = singer.get_logger()
 
@@ -154,6 +153,44 @@ class Tickets(Stream):
                     Tickets.ticket_ids.append(rec['id'])
                     yield rec['id']
 
+    def push_records(self, pages):
+        for page in pages:
+            for record in page:
+                record.pop('attachments', None)
+                record['source_label'] = SOURCE.get(record.get('source', False), False)
+                record['status_label'] = STATUS.get(record.get('status', False), False)
+                record['priority_label'] = PRIORITY.get(record.get('priority', False), False)
+                start_date = record['updated_at']
+                yield record
+            start_date = helper.strptime(start_date) + datetime.timedelta(seconds=1)
+            start_date = helper.strftime(start_date)
+
+            helper.update_state(self.state, self.stream_id, start_date)
+            singer.write_state(self.state)
+        return True
+
+    def pagination_reset(self, args, flag=True):
+        # Don't keep records in-memory, push data for each pagination reset
+        while flag:
+            records = list(self.client.get(self.endpoint, params=args))
+            flag = args.get("reset_pagination", False)
+            if 'reset_pagination' in args:
+                del args['reset_pagination']
+            yield from self.push_records(records)
+
+    def get_records(self, args):
+        # TODO: add state for deleted_tickets and spam_tickets along with args init start_date
+        # because ticket state is updated after reset pagination
+        # as a result deleted and spam will be filtered with the latest ticket state date
+        for predefined_filter in ["", "deleted", "spam"]:
+            message = "Syncing tickets "
+            if predefined_filter:
+                # Get filtered record, as deleted records won't show on unfiltered call
+                args['filter'] = predefined_filter
+                message += "with filter "
+            LOGGER.info(message + "{}".format(predefined_filter))
+            yield from self.pagination_reset(args)
+
     def sync(self, start_date):
         params = {
             'updated_since': start_date,
@@ -161,27 +198,7 @@ class Tickets(Stream):
             'order_type': "asc",
             'include': "requester,company,stats"
         }
-
-        records = list(self.client.get(self.endpoint, params=params))
-        for predefined_filter in ["deleted", "spam"]:
-            LOGGER.info("Syncing tickets with filter {}".format(predefined_filter))
-            params['filter'] = predefined_filter
-            # Get filtered record, as deleted records won't show on unfiltered call
-            records.extend(self.client.get(self.endpoint, params=params))
-
-        for page in records:
-            for rec in page:
-                rec.pop('attachments', None)
-                rec['source_label'] = SOURCE.get(rec.get('source', False), False)
-                rec['status_label'] = STATUS.get(rec.get('status', False), False)
-                rec['priority_label'] = PRIORITY.get(rec.get('priority', False), False)
-                start_date = rec['updated_at']
-                yield rec
-            start_date = helper.strptime(start_date) + datetime.timedelta(seconds=1)
-            start_date = helper.strftime(start_date)
-
-            helper.update_state(self.state, self.stream_id, start_date)
-            singer.write_state(self.state)
+        yield from self.get_records(params)
 
 
 class Conversations(Stream):
