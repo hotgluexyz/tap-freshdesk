@@ -226,11 +226,11 @@ class SatisfactionRatings(Stream):
     endpoint = 'surveys/satisfaction_ratings'
     custom_fields = False
     key_properties = ["id"]
-    replication_method = "INCREMENTAL"
-    replication_keys = ['created_at']
+    replication_method = "FULL_TABLE"
+    replication_keys = []
 
     def sync(self, start_date):
-        params = {'created_since': start_date}
+        params = {}
         questions = []
         # Get survey questions (id, label)
         for question_page in self.client.get("surveys", params={}):
@@ -241,8 +241,6 @@ class SatisfactionRatings(Stream):
         records = self.client.get(self.endpoint, params=params)
         for page in records:
             for rec in page:
-                if rec['created_at'] > start_date:
-                    start_date = rec['created_at']
                 if rec.get('ratings', False):
                     response = []
                     for k, v in rec['ratings'].items():
@@ -255,11 +253,6 @@ class SatisfactionRatings(Stream):
                     rec.pop('ratings')  # remove dict
                     rec['ratings'] = response  # insert array of objects
                 yield rec
-            start_date = helper.strptime(start_date) + datetime.timedelta(seconds=1)
-            start_date = helper.strftime(start_date)
-
-            helper.update_state(self.state, self.stream_id, start_date)
-            singer.write_state(self.state)
 
 
 class TimeEntries(Stream):
