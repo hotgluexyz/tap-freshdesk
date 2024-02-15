@@ -32,6 +32,10 @@ def sync(client, config: dict, state: dict, catalog: singer.Catalog):
         stream_object = STREAM_OBJECTS.get(stream_id)(client, config, state)
         schema = stream_schema.to_dict()
 
+        if not metadata.to_map(stream.metadata).get((), {}).get("selected"):
+            logger.info(f"Skipping stream {stream_id} as it is not selected.")
+            continue
+
         if stream_object is None:
             raise Exception("Attempted to sync unknown stream {}".format(stream_id))
 
