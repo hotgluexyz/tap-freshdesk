@@ -103,6 +103,7 @@ custom_field_types = {
     "custom_paragraph": {'type': ['null', 'string']},
     "custom_checkbox": {'type': ['null', 'boolean']},
     "custom_dropdown": {'type': ['null', 'string']},
+    "custom_date_time": {'type': ['null', 'string']},
     "custom_text": {'type': ['null', 'string']},
     "nested_field": {'type': ['null', 'string']},
     "custom_decimal": {'type': ['null', 'number']},
@@ -113,4 +114,5 @@ custom_field_types = {
 
 
 def map_type(field_type):
-    return custom_field_types[field_type]
+    # NOTE: Added fallback to string if no match
+    return custom_field_types.get(field_type) or {'type': ['null', 'string']}
