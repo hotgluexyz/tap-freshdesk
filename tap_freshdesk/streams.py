@@ -2,6 +2,9 @@
 import singer
 import datetime
 from tap_freshdesk import helper
+import requests
+import csv
+from io import StringIO
 
 LOGGER = singer.get_logger()
 
@@ -195,9 +198,13 @@ class Conversations(Stream):
     replication_keys = []
     ticket_ids = []
 
-    def sync(self, start_date):
+    def get_all_tickets(self):
         tickets = Tickets(self.client, self.config, self.state)
-        for ticket_id in tickets.get_all_ticket_ids():
+        return tickets.get_all_ticket_ids()
+
+
+    def sync(self, start_date):
+        for ticket_id in self.get_all_tickets():
             pages = self.client.get(self.endpoint.format(id=ticket_id), params={})
             for page in pages:
                 for rec in page:
@@ -270,7 +277,82 @@ class TimeEntries(Stream):
                 yield rec
             singer.write_state(self.state)
 
+class ExportReport(Stream):
+    stream_id = 'export_report'
+    stream_name = 'export_report'
+    endpoint = 'reports/schedule/download_file.json'
+    custom_fields = False
+    key_properties = ["id"]
+    replication_method = "FULL_TABLE"
+    replication_keys = []
+    report_tickets = []
 
+    def get_records(self):
+        params = {"uuid":self.config.get("report_id")}
+        url = "https://timeinternet.freshdesk.com/reports/schedule/download_file.json"
+        resp = self.client._make_request_internal(full_url=url,api_key=self.config.get("api_key"),params=params)
+        if resp.status_code == 200:
+            data = resp.json()
+            if "export" in data:
+                if "url" in data['export']:
+                    url = data['export']['url']
+                    csv_file = requests.get(url)
+                    # Read the CSV content from the response
+                    csv_content = csv_file.text
+                    # Use StringIO to create a file-like object for csv.reader
+                    csv_file = StringIO(csv_content)
+                    csv_reader = csv.DictReader(csv_file)
+                    return csv_reader
+
+    def sync(self, start_date):
+        if self.config.get("report_id",None):
+            csv_reader = self.get_records()
+            # Iterate over each row in the CSV
+            for row in csv_reader:
+                # Convert keys to lowercase and replace spaces with underscores
+                processed_row = {key.lower().replace(' ', '_'): value for key, value in row.items()}
+                # Process each row as needed
+                self.report_tickets.append(processed_row['ticket_id'])
+                yield processed_row
+        else:
+            return []
+    def get_report_tickets(self):
+        if not self.report_tickets:
+            res = self.sync(None)
+            #process the generator
+            res = list(res)
+            return self.report_tickets
+        return self.report_tickets    
+
+class ReportTickets(Stream):
+    stream_id = 'report_tickets'
+    stream_name = 'report_tickets'
+    endpoint = 'tickets/{id}'
+    custom_fields = False
+    key_properties = ["id"]
+    replication_method = "FULL_TABLE"
+    replication_keys = []
+    ticket_ids = []
+
+    def get_all_tickets(self):
+        tickets = ExportReport(self.client, self.config, self.state)
+        return tickets.get_report_tickets()
+    
+    def sync(self, start_date):
+        for ticket_id in self.get_all_tickets():
+            url = self.client.get_base_url(self.endpoint.format(id=ticket_id))
+            resp = self.client._make_request_internal(full_url=url,api_key=self.config.get("api_key"),params=None)
+            resp.raise_for_status()
+            yield resp.json()
+class ReportConversations(Conversations):
+    stream_id = 'report_conversations'
+    stream_name = 'report_conversations'
+    endpoint = 'tickets/{id}/conversations'
+
+    def get_all_tickets(self):
+        tickets = ExportReport(self.client, self.config, self.state)
+        return tickets.get_report_tickets()
+        
 STREAM_OBJECTS = {
     'agents': Agents,
     'companies': Companies,
@@ -281,4 +363,7 @@ STREAM_OBJECTS = {
     'conversations': Conversations,
     'satisfaction_ratings': SatisfactionRatings,
     'time_entries': TimeEntries,
+    'export_report':ExportReport,
+    'report_tickets':ReportTickets,
+    'report_conversations':ReportConversations,
 }

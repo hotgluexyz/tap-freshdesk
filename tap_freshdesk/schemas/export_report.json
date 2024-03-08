@@ -1,0 +1,279 @@
+{
+    "type": "object",
+    "properties": {
+      "ticket_id": {
+        "type": ["null", "string"]
+      },
+      "agent_name": {
+        "type": ["null", "string"]
+      },
+      "status": {
+        "type": ["null", "string"]
+      },
+      "priority": {
+        "type": ["null", "string"]
+      },
+      "source": {
+        "type": ["null", "string"]
+      },
+      "resolved_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "last_assigned_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "appointment_start_time": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "escalation_reason": {
+        "type": ["null", "string"]
+      },
+      "first_response_time_in_calendar_hours": {
+        "type": ["null", "number"]
+      },
+      "mcmc_main_cat": {
+        "type": ["null", "string"]
+      },
+      "first_assign_time_in_business_hours": {
+        "type": ["null", "string"]
+      },
+      "breakdown_selection_1": {
+        "type": ["null", "string"]
+      },
+      "first_response_time_in_business_hours": {
+        "type": ["null", "string"]
+      },
+      "first_assign_time_in_calendar_hours": {
+        "type": ["null", "string"]
+      },
+      "first_assigned_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "subject": {
+        "type": ["null", "string"]
+      },
+      "category": {
+        "type": ["null", "string"]
+      },
+      "resolution_due_by": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "resolution_time_in_business_hours": {
+        "type": ["null", "string"]
+      },
+      "last_updated_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "no_of_times_reopened": {
+        "type": ["null", "number"]
+      },
+      "created_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "first_response_due_by": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "mcmc_complain_number_(n)": {
+        "type": ["null", "string"]
+      },
+      "staff": {
+        "type": ["null", "string"]
+      },
+      "resolution_time_in_calendar_hours": {
+        "type": ["null", "string"]
+      },
+      "first_response_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "requester_name": {
+        "type": ["null", "string"]
+      },
+      "requester_email": {
+        "type": ["null", "string"]
+      },
+      "company_name": {
+        "type": ["null", "string"]
+      },
+      "group_name": {
+        "type": ["null", "string"]
+      },
+      "internal_group_name": {
+        "type": ["null", "string"]
+      },
+      "internal_agent_name": {
+        "type": ["null", "string"]
+      },
+      "status_sla_timer": {
+        "type": ["null", "string"]
+      },
+      "tickets_resolved_within_fcr": {
+        "type": ["null", "string"]
+      },
+      "tickets_first_responded_within_sla": {
+        "type": ["null", "string"]
+      },
+      "tickets_resolved_within_sla": {
+        "type": ["null", "string"]
+      },
+      "tickets_age": {
+        "type": ["null", "number"]
+      },
+      "final_sentiment": {
+        "type": ["null", "string"]
+      },
+      "account_no": {
+        "type": ["null", "string"]
+      },
+      "service_location": {
+        "type": ["null", "string"]
+      },
+      "mcmc_complain_number": {
+        "type": ["null", "string"]
+      },
+      "tt_id_/sp_number_(tp_&_support_only)": {
+        "type": ["null", "string"]
+      },
+      "company_name": {
+        "type": ["null", "string"]
+      },
+      "company_customer_tier": {
+        "type": ["null", "string"]
+      },
+      "company_pic_name": {
+        "type": ["null", "string"]
+      },
+      "company_primary_email_address": {
+        "type": ["null", "string"]
+      },
+      "company_speed": {
+        "type": ["null", "string"]
+      },
+      "tag_name": {
+        "type": ["null", "string"]
+      },
+      "survey_updated_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "survey_sent_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "survey_survey_status": {
+        "type": ["null", "string"]
+      },
+      "survey_survey_name": {
+        "type": ["null", "string"]
+      },
+      "survey_results_emotion": {
+        "type": ["null", "string"]
+      },
+      "survey_results_responded_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "survey_results_survey_status": {
+        "type": ["null", "string"]
+      },
+      "survey_results_choices": {
+        "type": ["null", "string"]
+      },
+      "survey_results_survey_name": {
+        "type": ["null", "string"]
+      },
+      "survey_results_sent_via": {
+        "type": ["null", "string"]
+      },
+      "survey_results_survey_created_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "survey_results_question": {
+        "type": ["null", "string"]
+      },
+      "survey_results_agent_name": {
+        "type": ["null", "string"]
+      },
+      "survey_results_group_name": {
+        "type": ["null", "string"]
+      },
+      "survey_results_customer": {
+        "type": ["null", "string"]
+      },
+      "contacts_type": {
+        "type": ["null", "string"]
+      },
+      "contacts_email": {
+        "type": ["null", "string"]
+      },
+      "contacts_name": {
+        "type": ["null", "string"]
+      },
+      "contacts_city": {
+        "type": ["null", "string"]
+      },
+      "contacts_state": {
+        "type": ["null", "string"]
+      },
+      "contacts_olt": {
+        "type": ["null", "string"]
+      },
+      "contacts_speed": {
+        "type": ["null", "string"]
+      },
+      "contacts_splitter": {
+        "type": ["null", "string"]
+      },
+      "contacts_building_name": {
+        "type": ["null", "string"]
+      },
+      "contacts_billing_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "contacts_onu_serial_number": {
+        "type": ["null", "string"]
+      },
+      "contacts_acc_number": {
+        "type": ["null", "string"]
+      },
+      "contacts_facebook_id": {
+        "type": ["null", "string"]
+      },
+      "contacts_service_type": {
+        "type": ["null", "string"]
+      },
+      "contacts_oku": {
+        "type": ["null", "string"]
+      },
+      "contacts_first_contract_start_date": {
+        "type": ["null", "string"],
+        "format": "date-time"
+      },
+      "contacts_installation_type": {
+        "type": ["null", "string"]
+      },
+      "contacts_service_number": {
+        "type": ["null", "string"]
+      },
+      "contacts_payment_amount": {
+        "type": ["null", "string"]
+      },
+      "ticket_theme_keywords": {
+        "type": ["null", "string"]
+      },
+      "ticket_theme_name": {
+        "type": ["null", "string"]
+      }
+    }
+  }
+  
