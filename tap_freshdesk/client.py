@@ -54,7 +54,9 @@ class FreshdeskClient:
             time.sleep(retry_after)
             raise RateLimitException()
         return resp
-
+    def get_base_url(self,endpoint=None):
+        domain = self.config.get("domain", False)
+        return ENDPOINT_BASE.format(domain) + endpoint
     def _make_request(self, method, endpoint, headers=None, params=None, data=None):
         params = params or {}
         params["per_page"] = PER_PAGE

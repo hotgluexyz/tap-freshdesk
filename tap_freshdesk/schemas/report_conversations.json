@@ -1,0 +1,64 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": ["null", "integer"]
+        },
+        "created_at": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        },
+        "ticket_id": {
+            "type": ["null", "integer"]
+        },
+        "user_id": {
+            "type": ["null", "integer"]
+        },
+        "source": {
+            "type": ["null", "integer"]
+        },
+        "body_text": {
+            "type": ["null", "string"]
+        },
+        "incoming": {
+            "type": ["null", "boolean"]
+        },
+        "private": {
+            "type": ["null", "boolean"]
+        },
+        "support_email": {
+            "type": ["null", "string"]
+        },
+        "to_emails": {
+          "type": ["null", "array"],
+          "items": {
+            "type": ["null", "string"]
+          }
+        },
+        "from_email": {
+            "type": ["null", "string"]
+        },
+        "cc_emails": {
+          "type": ["null", "array"],
+          "items": {
+            "type": ["null", "string"]
+          }
+        },
+        "bcc_emails": {
+          "type": ["null", "array"],
+          "items": {
+            "type": ["null", "string"]
+          }
+        },
+        "updated_at": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        }
+    }
+}
